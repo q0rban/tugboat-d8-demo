@@ -66,6 +66,9 @@ importfiles: create-backup
 	terminus backup:get ${PANTHEON_SOURCE_SITE}.${PANTHEON_SOURCE_ENVIRONMENT} --to=/tmp/files.tar.gz --element=files
 	tar -C /tmp -zxf /tmp/files.tar.gz
 	rsync -av --delete /tmp/files_${PANTHEON_SOURCE_ENVIRONMENT}/ /var/www/html/sites/default/files/
+	chgrp -R www-data /var/www/html/sites/default/files
+	chmod -R g+w /var/www/html/sites/default/files
+	chmod 2775 /var/www/html/sites/default/files
 
 build:
 	drush -r /var/www/html cr
