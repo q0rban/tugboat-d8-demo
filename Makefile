@@ -1,18 +1,6 @@
 all: packages drupalconfig createdb importdb importfiles build clean tugboat-build tugboat-init tugboat-update
 .PHONY: all
 
-define check_variables
-ifndef PANTHEON_SOURCE_SITE
-  $(error You must set the PANTHEON_SOURCE_SITE variable in your Tugboat repository settings)
-endif
-ifndef PANTHEON_SOURCE_ENVIRONMENT
-  $(error You must set the PANTHEON_SOURCE_ENVIRONMENT variable in your Tugboat repository settings)
-endif
-ifndef PANTHEON_MACHINE_TOKEN
-  $(error You must set the PANTHEON_MACHINE_TOKEN variable in your Tugboat repository settings)
-endif
-endef
-
 packages:
 	apt-get install -y python-software-properties software-properties-common
 	add-apt-repository -y ppa:ondrej/php
@@ -61,7 +49,7 @@ drupalconfig:
 	cp ${TUGBOAT_ROOT}/.tugboat/dist/settings.local.php ${TUGBOAT_ROOT}/sites/default/settings.local.php
 	echo "\$$settings['hash_salt'] = '$$(openssl rand -hex 32)';" >> ${TUGBOAT_ROOT}/sites/default/settings.local.php
 
-create-backup:
+create-backup: check-env
 	terminus backup:create ${PANTHEON_SOURCE_SITE}.${PANTHEON_SOURCE_ENVIRONMENT}
 
 createdb:
@@ -84,7 +72,18 @@ clean:
 	apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 check-env:
-	$(call check_variables)
+	@if [ -z $(PANTHEON_SOURCE_SITE) ]; then\
+		echo "You must set the PANTHEON_SOURCE_SITE variable in your Tugboat repository settings";\
+		exit 1;\
+	fi;\
+	if [ -z $(PANTHEON_SOURCE_ENVIRONMENT) ]; then\
+		echo "You must set the PANTHEON_SOURCE_ENVIRONMENT variable in your Tugboat repository settings";\
+		exit 1;\
+	fi;\
+	if [ -z $(PANTHEON_MACHINE_TOKEN) ]; then\
+		echo "You must set the PANTHEON_MACHINE_TOKEN variable in your Tugboat repository settings";\
+		exit 1;\
+	fi;\
 
 tugboat-init: check-env packages createdb drupalconfig importdb importfiles build clean
 tugboat-update: check-env importdb importfiles build clean
