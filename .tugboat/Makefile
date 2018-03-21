@@ -12,8 +12,7 @@ install-standard-packages:
 .PHONY: install-composer
 install-composer: install-standard-packages
 	$(info Installing Composer...)
-	@$(TUGBOAT_DIR)/bin/install-composer.sh && \
-	ln -sf $(TUGBOAT_DIR)/composer.phar /usr/local/bin/composer
+	@$(TUGBOAT_DIR)/bin/install-composer.sh
 
 .PHONY: install-drush
 install-drush: install-composer
