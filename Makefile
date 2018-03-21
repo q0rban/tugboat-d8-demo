@@ -3,7 +3,7 @@ all: packages drupalconfig createdb create-backup importdb importfiles build cle
 
 export COMPOSER_NO_INTERACTION = 1
 
-packages:
+packages: check-env
 	apt-get install -y python-software-properties software-properties-common
 	add-apt-repository -y ppa:ondrej/php
 	apt-get update
@@ -58,11 +58,11 @@ create-backup: check-env
 createdb:
 	mysql -h mysql -u tugboat -ptugboat -e "create database drupal8;"
 
-importdb: create-backup
+importdb: check-env create-backup
 	terminus backup:get ${PANTHEON_SOURCE_SITE}.${PANTHEON_SOURCE_ENVIRONMENT} --to=/tmp/database.sql.gz --element=db
 	zcat /tmp/database.sql.gz | mysql -h mysql -u tugboat -ptugboat drupal8
 
-importfiles: create-backup
+importfiles: check-env create-backup
 	terminus backup:get ${PANTHEON_SOURCE_SITE}.${PANTHEON_SOURCE_ENVIRONMENT} --to=/tmp/files.tar.gz --element=files
 	tar -C /tmp -zxf /tmp/files.tar.gz
 	rsync -av --delete /tmp/files_${PANTHEON_SOURCE_ENVIRONMENT}/ /var/www/html/sites/default/files/
@@ -91,6 +91,6 @@ check-env:
 		exit 1;\
 	fi;\
 
-tugboat-init: check-env packages createdb drupalconfig importdb importfiles build clean
-tugboat-update: check-env importdb importfiles build clean
+tugboat-init: packages createdb drupalconfig importdb importfiles build clean
+tugboat-update: importdb importfiles build clean
 tugboat-build: build
