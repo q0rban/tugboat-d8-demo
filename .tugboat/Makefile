@@ -1,16 +1,21 @@
-.PHONY: install-%
-
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 TUGBOAT_DIR := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 
 export COMPOSER_NO_INTERACTION = 1
 CURRENT_PHP_VERSION := $(shell php -r "echo PHP_MAJOR_VERSION .'.'. PHP_MINOR_VERSION;")
 
-install-composer:
+.PHONY: install-standard-packages
+install-standard-packages:
+	apt-get update
+	apt-get install -y mysql-client rsync wget
+
+.PHONY: install-composer
+install-composer: install-standard-packages
 	$(info Installing Composer...)
 	@$(TUGBOAT_DIR)/bin/install-composer.sh && \
 	ln -sf $(TUGBOAT_DIR)/composer.phar /usr/local/bin/composer
 
+.PHONY: install-drush
 install-drush: install-composer
 	$(info Installing Drush...)
 	composer install --no-ansi
@@ -18,12 +23,14 @@ install-drush: install-composer
 	ln -sf /root/.composer/vendor/bin/drush /usr/bin/drush
 	@echo "Drush installed."
 
+.PHONY: install-terminus
 install-terminus: install-composer
 	$(info Installing Terminus...)
 	@curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar &&\
 	php installer.phar install &&\
 	echo "Terminus installed."
 
+.PHONY: install-php-%
 install-php-%:
 	$(info Installing PHP $*...)
 #	# Ensure PHP version is correctly formatted.
@@ -73,6 +80,7 @@ install-php-%:
 		echo "PHP $(*) installed.";\
 	fi
 
+.PHONY: install-nodejs-%
 install-nodejs-%:
 	$(info Installing nodejs $*...)
 #	# Ensure nodejs version is correctly formatted.
