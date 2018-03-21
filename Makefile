@@ -39,6 +39,8 @@ packages:
 	a2enmod php7.2
 	a2dismod php7.0
 	composer install --no-ansi --no-interaction
+	composer --no-ansi --no-interaction global require drush/drush
+	ln -sf /home/root/.composer/vendor/bin/drush /usr/bin/drush
 	ln -sf ${TUGBOAT_ROOT} /var/www/html
 	# Install terminus
 	curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install
@@ -64,7 +66,7 @@ importfiles: create-backup
 	rsync -av --delete /tmp/files_${PANTHEON_SOURCE_ENVIRONMENT}/ /var/www/html/sites/default/files/
 
 build:
-	drush -r /var/www/html cache-rebuild
+	drush -r /var/www/html cr
 	drush -r /var/www/html updb -y
 
 clean:
