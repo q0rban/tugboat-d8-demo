@@ -1,7 +1,7 @@
 all: packages drupalconfig createdb importdb importfiles build clean tugboat-build tugboat-init tugboat-update
 .PHONY: all
 
-packages:
+packages: export COMPOSER_NO_INTERACTION = 1
 	apt-get install -y python-software-properties software-properties-common
 	add-apt-repository -y ppa:ondrej/php
 	apt-get update
@@ -38,9 +38,9 @@ packages:
 		rsync
 	a2enmod php7.2
 	a2dismod php7.0
-	composer install --no-ansi --no-interaction
-	composer --no-ansi --no-interaction global require drush/drush
-	ln -sf /home/root/.composer/vendor/bin/drush /usr/bin/drush
+	composer install --no-ansi
+	composer --no-ansi global require drush/drush
+	ln -sf /root/.composer/vendor/bin/drush /usr/bin/drush
 	ln -sf ${TUGBOAT_ROOT} /var/www/html
 	# Install terminus
 	curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install
