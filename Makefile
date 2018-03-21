@@ -1,7 +1,9 @@
 all: packages drupalconfig createdb importdb importfiles build clean tugboat-build tugboat-init tugboat-update
 .PHONY: all
 
-packages: export COMPOSER_NO_INTERACTION = 1
+export COMPOSER_NO_INTERACTION = 1
+
+packages:
 	apt-get install -y python-software-properties software-properties-common
 	add-apt-repository -y ppa:ondrej/php
 	apt-get update
