@@ -2,7 +2,7 @@ MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 TUGBOAT_DIR := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 
 export COMPOSER_NO_INTERACTION = 1
-CURRENT_PHP_VERSION := $(shell php -r "echo PHP_MAJOR_VERSION .'.'. PHP_MINOR_VERSION;")
+CURRENT_PHP_VERSION := $(shell php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;")
 
 .PHONY: install-standard-packages
 install-standard-packages:
@@ -39,7 +39,6 @@ install-php-%:
 #	# Ensure installed PHP version isn't the current version to be installed.
 	@if [ $* = ${CURRENT_PHP_VERSION} ]; then\
 		echo "Current PHP Version is already ${CURRENT_PHP_VERSION}.";\
-		exit;\
 	else \
 		apt-get install -y python-software-properties software-properties-common &&\
 		add-apt-repository -y ppa:ondrej/php &&\
