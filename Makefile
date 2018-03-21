@@ -1,4 +1,4 @@
-all: packages drupalconfig createdb importdb importfiles build clean tugboat-build tugboat-init tugboat-update
+all: packages drupalconfig createdb create-backup importdb importfiles build clean tugboat-build tugboat-init tugboat-update check-env
 .PHONY: all
 
 export COMPOSER_NO_INTERACTION = 1
