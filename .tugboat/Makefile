@@ -18,7 +18,6 @@ install-composer: install-standard-packages
 .PHONY: install-drush
 install-drush: install-composer
 	$(info Installing Drush...)
-	composer install --no-ansi
 	composer --no-ansi global require drush/drush
 	ln -sf /root/.composer/vendor/bin/drush /usr/bin/drush
 	@echo "Drush installed."
