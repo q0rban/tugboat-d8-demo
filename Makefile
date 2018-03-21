@@ -2,54 +2,32 @@ all: packages drupalconfig createdb create-backup importdb importfiles build cle
 .PHONY: all
 
 export COMPOSER_NO_INTERACTION = 1
+export PANTHEON_PHP_VERSION = 7.0
 
 packages: check-env
-	apt-get install -y python-software-properties software-properties-common
-	add-apt-repository -y ppa:ondrej/php
-	apt-get update
-	apt-get install -y \
-		php7.2 \
-		php7.2-mbstring \
-		php7.2-mysql \
-		php7.2-xml \
-		php7.2-zip \
-		php7.2-bcmath \
-		php7.2-bz2 \
-		php7.2-cli \
-		php7.2-common \
-		php7.2-curl \
-		php7.2-dev \
-		php7.2-gd \
-		php7.2-intl \
-		php7.2-json \
-		php7.2-mbstring \
-		php7.2-mysql \
-		php7.2-opcache \
-		php7.2-phpdbg \
-		php7.2-pspell \
-		php7.2-readline \
-		php7.2-recode \
-		php7.2-soap \
-		php7.2-sqlite3 \
-		php7.2-tidy \
-		php7.2-xml \
-		php7.2-xsl \
-		php7.2-zip \
-		libapache2-mod-php7.2 \
-		mysql-client \
-		rsync
-	a2enmod php7.2
-	a2dismod php7.0
-	composer install --no-ansi
-	composer --no-ansi global require drush/drush
-	ln -sf /root/.composer/vendor/bin/drush /usr/bin/drush
+#	Install the correct PHP version for this site.
+	$(MAKE) install-php-${PANTHEON_PHP_VERSION} -C .tugboat
+
+#	Install drush.
+	$(MAKE) install-drush -C .tugboat
+
+#	Point /var/www/html to the web root of this site. In this case, it's the
+#	root of the repo, but you could have the web root in a subdir.
 	ln -sf ${TUGBOAT_ROOT} /var/www/html
-	# Install terminus
-	curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install
+
+#	If you need nodejs, you can install it by uncommenting one of the following:
+#	$(MAKE) install-nodejs-8 -C .tugboat
+#	$(MAKE) install-nodejs-9 -C .tugboat
+
+#	Install terminus
+	$(MAKE) -C .tugboat install-terminus
+#	Authenticate to terminus
 	terminus auth:login --machine-token=${PANTHEON_MACHINE_TOKEN}
 
 drupalconfig:
+#	Copy the settings.local.php that works for Tugboat into sites/default.
 	cp ${TUGBOAT_ROOT}/.tugboat/dist/settings.local.php ${TUGBOAT_ROOT}/sites/default/settings.local.php
+#	Generate a hash_salt to secure the site.
 	echo "\$$settings['hash_salt'] = '$$(openssl rand -hex 32)';" >> ${TUGBOAT_ROOT}/sites/default/settings.local.php
 
 create-backup: check-env
@@ -59,11 +37,17 @@ createdb:
 	mysql -h mysql -u tugboat -ptugboat -e "create database drupal8;"
 
 importdb: check-env create-backup
-	terminus backup:get ${PANTHEON_SOURCE_SITE}.${PANTHEON_SOURCE_ENVIRONMENT} --to=/tmp/database.sql.gz --element=db
+	terminus backup:get \
+		${PANTHEON_SOURCE_SITE}.${PANTHEON_SOURCE_ENVIRONMENT} \
+		--to=/tmp/database.sql.gz \
+		--element=db
 	zcat /tmp/database.sql.gz | mysql -h mysql -u tugboat -ptugboat drupal8
 
 importfiles: check-env create-backup
-	terminus backup:get ${PANTHEON_SOURCE_SITE}.${PANTHEON_SOURCE_ENVIRONMENT} --to=/tmp/files.tar.gz --element=files
+	terminus backup:get \
+		${PANTHEON_SOURCE_SITE}.${PANTHEON_SOURCE_ENVIRONMENT} \
+		--to=/tmp/files.tar.gz \
+		--element=files
 	tar -C /tmp -zxf /tmp/files.tar.gz
 	rsync -av --delete /tmp/files_${PANTHEON_SOURCE_ENVIRONMENT}/ /var/www/html/sites/default/files/
 	chgrp -R www-data /var/www/html/sites/default/files
@@ -71,6 +55,7 @@ importfiles: check-env create-backup
 	chmod 2775 /var/www/html/sites/default/files
 
 build:
+	composer install --no-ansi
 	drush -r /var/www/html cr
 	drush -r /var/www/html updb -y
 
