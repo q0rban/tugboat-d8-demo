@@ -2,7 +2,7 @@ all: packages drupalconfig createdb create-backup importdb importfiles build cle
 .PHONY: all
 
 export COMPOSER_NO_INTERACTION = 1
-export PANTHEON_PHP_VERSION = 7.0
+export PANTHEON_PHP_VERSION = 7.2
 
 packages: check-env
 #	Install the correct PHP version for this site.
@@ -10,6 +10,9 @@ packages: check-env
 
 #	Install drush.
 	$(MAKE) install-drush -C .tugboat
+
+#	Install nodejs 8
+	$(MAKE) install-nodejs-8 -C .tugboat
 
 #	Point /var/www/html to the web root of this site. In this case, it's the
 #	root of the repo, but you could have the web root in a subdir.
