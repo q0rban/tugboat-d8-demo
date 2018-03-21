@@ -11,7 +11,8 @@ then
     exit 1
 fi
 
-php composer-setup.php
+php composer-setup.php --install-dir=/tmp \
+  && mv -f /tmp/composer.phar /usr/local/bin/composer
 RESULT=$?
 rm composer-setup.php
 exit $RESULT
