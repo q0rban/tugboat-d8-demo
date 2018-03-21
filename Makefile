@@ -21,7 +21,7 @@ DRUPAL_DB_NAME = drupal8
 
 #########
 # There is often no need to modify any of the following variables.
-DRUSH = drush --root=${DRUPAL_ROOT} --uri=${TUGBOAT_URL}
+DRUSH = drush -y --root=${DRUPAL_ROOT} --uri=${TUGBOAT_URL}
 # The directory that the web server serves the site from.
 WWW_DIR = /var/www/html
 # The repo root, which is identical to $TUGBOAT_ROOT.
@@ -58,7 +58,7 @@ importdb: check-env create-backup
 		--to=/tmp/database.sql.gz \
 		--element=db
 #	Clean out all existing tables.
-	${DRUSH} sql-drop -y
+	${DRUSH} sql-drop
 #	Import the new database dump.
 	zcat /tmp/database.sql.gz | ${DRUSH} sql-cli
 #	Sanitize the new database dump.
@@ -82,7 +82,7 @@ build:
 #	environments can use, including local, Dev, Test, Prod, and Tugboat.
 	composer install --no-ansi
 	${DRUSH} cr
-	${DRUSH} updb -y
+	${DRUSH} updb
 
 clean:
 	apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
