@@ -21,7 +21,6 @@ packages:
 		php7.2-intl \
 		php7.2-json \
 		php7.2-mbstring \
-		php7.2-mcrypt \
 		php7.2-mysql \
 		php7.2-opcache \
 		php7.2-phpdbg \
@@ -43,7 +42,7 @@ packages:
 	ln -sf ${TUGBOAT_ROOT} /var/www/html
 	# Install terminus
 	curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install
-	terminus auth:login --machine-token=$PANTHEON_MACHINE_TOKEN
+	terminus auth:login --machine-token=${PANTHEON_MACHINE_TOKEN}
 
 drupalconfig:
 	cp ${TUGBOAT_ROOT}/.tugboat/dist/settings.local.php ${TUGBOAT_ROOT}/sites/default/settings.local.php
