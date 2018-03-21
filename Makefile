@@ -4,26 +4,12 @@ all: packages drupalconfig createdb create-backup importdb importfiles build cle
 export COMPOSER_NO_INTERACTION = 1
 export PANTHEON_PHP_VERSION = 7.2
 
-packages: check-env
-#	Install the correct PHP version for this site.
-	$(MAKE) install-php-${PANTHEON_PHP_VERSION} -C .tugboat
+include .tugboat/Makefile
 
-#	Install drush.
-	$(MAKE) install-drush -C .tugboat
-
-#	Install nodejs 8
-	$(MAKE) install-nodejs-8 -C .tugboat
-
+packages: check-env install-php-${PANTHEON_PHP_VERSION} install-drush install-nodejs-8 install-terminus
 #	Point /var/www/html to the web root of this site. In this case, it's the
 #	root of the repo, but you could have the web root in a subdir.
 	ln -sf ${TUGBOAT_ROOT} /var/www/html
-
-#	If you need nodejs, you can install it by uncommenting one of the following:
-#	$(MAKE) install-nodejs-8 -C .tugboat
-#	$(MAKE) install-nodejs-9 -C .tugboat
-
-#	Install terminus
-	$(MAKE) -C .tugboat install-terminus
 #	Authenticate to terminus
 	terminus auth:login --machine-token=${PANTHEON_MACHINE_TOKEN}
 
