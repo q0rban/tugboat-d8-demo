@@ -24,9 +24,9 @@ install-package-%: packages-update
 install-composer: install-package-wget
 	$(info Installing Composer...)
 #	# The following code is adapted from https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
-	export EXPECTED_SIGNATURE=$(wget -q -O - https://composer.github.io/installer.sig) &&\
-	php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&\
-	export ACTUAL_SIGNATURE=$(php -r "echo hash_file('SHA384', 'composer-setup.php');")
+	export EXPECTED_SIGNATURE=$(shell wget -q -O - https://composer.github.io/installer.sig)
+	php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+	export ACTUAL_SIGNATURE=$(shell php -r "echo hash_file('SHA384', 'composer-setup.php');")
 
 	if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then \
 		>&2 echo 'ERROR: Invalid installer signature'; \
