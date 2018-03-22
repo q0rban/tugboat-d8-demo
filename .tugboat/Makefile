@@ -67,7 +67,7 @@ install-terminus: install-composer
 install-php-%:
 	$(info Installing PHP $*...)
 #	# Ensure PHP version is correctly formatted.
-	@if [[ ! $* =~ ^[0-9]\.[0-9]$ ]]; then\
+	@if [[ ! $* =~ ^[0-9]\.[0-9]$$ ]]; then\
 		echo "PHP version $* is an invalid format.";\
 		exit 1;\
 	fi
