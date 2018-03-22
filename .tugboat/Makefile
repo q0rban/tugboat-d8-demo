@@ -75,7 +75,6 @@ install-php-%:
 	@if [ $* = ${CURRENT_PHP_VERSION} ]; then\
 		echo "Current PHP Version is already ${CURRENT_PHP_VERSION}.";\
 	else \
-#		# TODO: could we use install-package for all these somehow?
 		apt-get install -y python-software-properties software-properties-common &&\
 		add-apt-repository -y ppa:ondrej/php &&\
 		apt-get update &&\
