@@ -28,7 +28,7 @@ install-composer: install-package-wget
 	$(info Installing Composer...)
 #	# The following code is adapted from https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
 	wget -O composer-setup.php https://getcomposer.org/installer
-	if [ ! sha384sum composer-setup.php | grep ${composer_expected_signature} ]; then \
+	if ! sha384sum composer-setup.php | grep ${composer_expected_signature}; then \
 		>&2 echo 'ERROR: Invalid installer signature'; \
 		rm composer-setup.php; \
 		exit 1; \
