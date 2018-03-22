@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 TUGBOAT_DIR := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 
