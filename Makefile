@@ -84,9 +84,6 @@ build:
 	${DRUSH} cr
 	${DRUSH} updb
 
-clean:
-	apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 check-env:
 	@if [ -z $(PANTHEON_SOURCE_SITE) ]; then\
 		echo "You must set the PANTHEON_SOURCE_SITE variable in your Tugboat repository settings";\

@@ -1,44 +1,82 @@
-MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
-TUGBOAT_DIR := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
+# We need bash to use =~ regex tests in if statements.
+SHELL := /bin/bash
+# Turn off interactive mode in Composer for all subshells.
+export COMPOSER_NO_INTERACTION := 1
+# A macro to retrieve the composer signature. This uses a recursively expanded
+# assignment so that it's only evaluated if needed.
+composer_expected_signature = $(shell wget -q -O - https://composer.github.io/installer.sig)
+# Determine the current PHP version in MAJOR.MINOR format. We use a recursively
+# expanded variable so that it's only evaluated if we want the value.
+current_php_version = $(shell php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;")
 
-export COMPOSER_NO_INTERACTION = 1
-CURRENT_PHP_VERSION := $(shell php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;")
-
-.PHONY: install-standard-packages
-install-standard-packages:
+# To keep build times faster, we can run apt-get update just once by having this
+# as a dependency to install-package-%.
+.PHONY: packages-update
+packages-update:
 	apt-get update
-	apt-get install -y mysql-client rsync wget
 
+# Install an apt package by passing the value. For example, to install wget, use
+# install-package-wget as the target.
+.PHONY: install-package-%
+install-package-%: packages-update
+	apt-get install -y --no-install-recommends $(*)
+
+# Installs the latest version of Composer. Note, you should use install-php-%
+# first to ensure your desired version of PHP is installed.
 .PHONY: install-composer
-install-composer: install-standard-packages
+install-composer: install-package-wget
 	$(info Installing Composer...)
-	@$(TUGBOAT_DIR)/bin/install-composer.sh
+#	# The following code is adapted from https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
+	wget -O composer-setup.php https://getcomposer.org/installer
+	@if ! sha384sum composer-setup.php | grep ${composer_expected_signature}; then \
+		>&2 echo 'ERROR: Invalid installer signature'; \
+		rm composer-setup.php; \
+		exit 1; \
+	fi
 
+	php composer-setup.php --install-dir=/tmp
+	mv -f /tmp/composer.phar /usr/local/bin/composer
+	rm composer-setup.php
+	@echo "Composer installed."
+
+# Installs the latest version of drush.
 .PHONY: install-drush
-install-drush: install-composer
+install-drush: install-composer install-package-rsync
 	$(info Installing Drush...)
 	composer --no-ansi global require drush/drush
 	ln -sf /root/.composer/vendor/bin/drush /usr/bin/drush
 	@echo "Drush installed."
 
-.PHONY: install-terminus
-install-terminus: install-composer
-	$(info Installing Terminus...)
-	@curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar &&\
-	php installer.phar install &&\
-	echo "Terminus installed."
+# Installs the drush-launcher instead of drush.
+.PHONY: install-drush-launcher
+install-drush-launcher: install-package-wget
+	$(info Installing Drush Launcher...)
+	wget -O /tmp/drush.phar https://github.com/drush-ops/drush-launcher/releases/download/0.6.0/drush.phar
+	mv -f /tmp/drush.phar /usr/bin/drush
+	chmod +x /usr/bin/drush
+	@echo "Drush Launcher installed."
 
+# Install terminus for Pantheon sites.
+.PHONY: install-terminus
+install-terminus: install-composer install-package-rsync
+	$(info Installing Terminus...)
+	curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar
+	php installer.phar install
+	@echo "Terminus installed."
+
+# Install a specific version of PHP by passing the version to this target. Use
+# major and minor versions separated by a dot. For example, install-php-7.2.
 .PHONY: install-php-%
 install-php-%:
 	$(info Installing PHP $*...)
 #	# Ensure PHP version is correctly formatted.
-	@if [[ ! $* =~ ^[0-9]\.[0-9]$ ]]; then\
+	@if [[ ! $* =~ ^[0-9]\.[0-9]$$ ]]; then\
 		echo "PHP version $* is an invalid format.";\
 		exit 1;\
 	fi
 #	# Ensure installed PHP version isn't the current version to be installed.
-	@if [ $* = ${CURRENT_PHP_VERSION} ]; then\
-		echo "Current PHP Version is already ${CURRENT_PHP_VERSION}.";\
+	@if [ $* = ${current_php_version} ]; then\
+		echo "Current PHP Version is already ${current_php_version}.";\
 	else \
 		apt-get install -y python-software-properties software-properties-common &&\
 		add-apt-repository -y ppa:ondrej/php &&\
@@ -73,18 +111,25 @@ install-php-%:
 			php$(*)-zip \
 			libapache2-mod-php$(*) &&\
 		a2enmod php$(*) &&\
-		a2dismod php$(CURRENT_PHP_VERSION) &&\
+		a2dismod php$(current_php_version) &&\
 		echo "PHP $(*) installed.";\
 	fi
 
+# Install a specific version of nodejs by passing the version to this target.
+# Use the major version only. For example, install-nodejs-9.
 .PHONY: install-nodejs-%
-install-nodejs-%:
+install-nodejs-%: install-package-curl
 	$(info Installing nodejs $*...)
 #	# Ensure nodejs version is correctly formatted.
 	@if [[ ! $* =~ ^[0-9]$$ ]]; then\
 		echo "Version number $* is an invalid format. Specify the major version only.";\
 		exit 1;\
 	fi
-	@curl -sL https://deb.nodesource.com/setup_$(*).x | bash - &&\
-	apt-get install -y nodejs &&\
-	echo "nodejs $(*).x installed."
+	curl -sL https://deb.nodesource.com/setup_$(*).x | bash -
+	apt-get install -y nodejs
+	@echo "Installed nodejs $(*).x."
+
+# Clean up apt repos etc., to reduce disk size.
+.PHONY: clean
+clean:
+	apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
