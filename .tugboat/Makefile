@@ -128,3 +128,8 @@ install-nodejs-%: install-package-curl
 	curl -sL https://deb.nodesource.com/setup_$(*).x | bash -
 	apt-get install -y nodejs
 	@echo "Installed nodejs $(*).x."
+
+# Clean up apt repos etc., to reduce disk size.
+.PHONY: clean
+clean:
+	apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
