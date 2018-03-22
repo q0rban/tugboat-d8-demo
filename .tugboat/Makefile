@@ -9,8 +9,8 @@ composer_expected_signature = $(shell wget -q -O - https://composer.github.io/in
 # expanded variable so that it's only evaluated if we want the value.
 current_php_version = $(shell php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;")
 
-# To keep things peppier, we can run apt-get update just once by having this as
-# a dependency to install-package-%.
+# To keep build times faster, we can run apt-get update just once by having this
+# as a dependency to install-package-%.
 .PHONY: packages-update
 packages-update:
 	apt-get update
@@ -28,7 +28,7 @@ install-composer: install-package-wget
 	$(info Installing Composer...)
 #	# The following code is adapted from https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
 	wget -O composer-setup.php https://getcomposer.org/installer
-	if ! sha384sum composer-setup.php | grep ${composer_expected_signature}; then \
+	@if ! sha384sum composer-setup.php | grep ${composer_expected_signature}; then \
 		>&2 echo 'ERROR: Invalid installer signature'; \
 		rm composer-setup.php; \
 		exit 1; \
@@ -50,10 +50,11 @@ install-drush: install-composer install-package-curl
 # Installs the drush-launcher instead of drush.
 .PHONY: install-drush-launcher
 install-drush-launcher: install-package-wget
+	$(info Installing Drush Launcher...)
 	wget -O /tmp/drush.phar https://github.com/drush-ops/drush-launcher/releases/download/0.6.0/drush.phar
 	mv -f /tmp/drush.phar /usr/bin/drush
 	chmod +x /usr/bin/drush
-	@echo "Drush launcher installed."
+	@echo "Drush Launcher installed."
 
 # Install terminus for Pantheon sites.
 .PHONY: install-terminus
