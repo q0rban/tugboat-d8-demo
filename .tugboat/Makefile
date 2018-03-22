@@ -2,10 +2,9 @@
 SHELL := /bin/bash
 # Turn off interactive mode in Composer for all subshells.
 export COMPOSER_NO_INTERACTION := 1
-# Some macros to verify the composer signature using recursively expanded
+# A macro to retrieve the composer signature. This uses a recursively expanded
 # assignment so that it's only evaluated if needed.
 composer_expected_signature = $(shell wget -q -O - https://composer.github.io/installer.sig)
-composer_actual_signature = $(shell php -r "echo hash_file('SHA384', __DIR__ . '/composer-setup.php');")
 # Determine the current PHP version in MAJOR.MINOR format. We use a recursively
 # expanded variable so that it's only evaluated if we want the value.
 current_php_version = $(shell php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;")
@@ -28,9 +27,8 @@ install-package-%: packages-update
 install-composer: install-package-wget
 	$(info Installing Composer...)
 #	# The following code is adapted from https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
-	php -r "copy('https://getcomposer.org/installer', __DIR__ . '/composer-setup.php');"
-
-	if [ "${composer_expected_signature}" != "${composer_actual_signature}" ]; then \
+	wget -O composer-setup.php https://getcomposer.org/installer
+	if [ ! sha384sum composer-setup.php | grep ${composer_expected_signature} ]; then \
 		>&2 echo 'ERROR: Invalid installer signature'; \
 		rm composer-setup.php; \
 		exit 1; \
