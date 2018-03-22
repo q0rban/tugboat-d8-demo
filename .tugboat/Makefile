@@ -2,8 +2,12 @@
 SHELL := /bin/bash
 # Turn off interactive mode in Composer for all subshells.
 export COMPOSER_NO_INTERACTION := 1
-# Determine the current php version. We use a recursively expanded variable so
-# that it's only evaluated when we want the value.
+# Some macros to verify the composer signature using recursively expanded
+# assignment so that it's only evaluated if needed.
+composer_expected_signature = $(shell wget -q -O - https://composer.github.io/installer.sig)
+composer_actual_signature = $(shell php -r "echo hash_file('SHA384', __DIR__ . '/composer-setup.php');")
+# Determine the current PHP version in MAJOR.MINOR format. We use a recursively
+# expanded variable so that it's only evaluated if we want the value.
 current_php_version = $(shell php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;")
 
 # To keep things peppier, we can run apt-get update just once by having this as
@@ -24,11 +28,9 @@ install-package-%: packages-update
 install-composer: install-package-wget
 	$(info Installing Composer...)
 #	# The following code is adapted from https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
-	export EXPECTED_SIGNATURE=$(shell wget -q -O - https://composer.github.io/installer.sig)
-	php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-	export ACTUAL_SIGNATURE=$(shell php -r "echo hash_file('SHA384', 'composer-setup.php');")
+	php -r "copy('https://getcomposer.org/installer', __DIR__ . '/composer-setup.php');"
 
-	if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then \
+	if [ "${composer_expected_signature}" != "${composer_actual_signature}" ]; then \
 		>&2 echo 'ERROR: Invalid installer signature'; \
 		rm composer-setup.php; \
 		exit 1; \
