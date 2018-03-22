@@ -41,7 +41,7 @@ install-composer: install-package-wget
 
 # Installs the latest version of drush.
 .PHONY: install-drush
-install-drush: install-composer install-package-curl
+install-drush: install-composer install-package-rsync
 	$(info Installing Drush...)
 	composer --no-ansi global require drush/drush
 	ln -sf /root/.composer/vendor/bin/drush /usr/bin/drush
@@ -58,7 +58,7 @@ install-drush-launcher: install-package-wget
 
 # Install terminus for Pantheon sites.
 .PHONY: install-terminus
-install-terminus: install-composer
+install-terminus: install-composer install-package-rsync
 	$(info Installing Terminus...)
 	curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar
 	php installer.phar install
