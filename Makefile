@@ -28,12 +28,11 @@ WWW_DIR = /var/www/html
 REPO_ROOT = ${TUGBOAT_ROOT}
 # The path to the Drupal site dir.
 DRUPAL_SITE_DIR = ${DRUPAL_ROOT}/sites/${DRUPAL_SITE}
-export COMPOSER_NO_INTERACTION = 1
 
 # Include Tugboat's utility Makefile.
-include .tugboat/Makefile
+-include /usr/share/tugboat/Makefile
 
-packages: check-env install-php-${PHP_VERSION} install-drush install-terminus
+packages: check-env install-drush install-terminus
 #	Point /var/www/html to the web root of this site. In this case, it's the
 #	root of the repo, but you could have the web root in a subdir.
 	ln -sf ${DRUPAL_ROOT} ${WWW_DIR}
