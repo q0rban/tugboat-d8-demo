@@ -46,6 +46,7 @@ install-php-%: ## Install a specific version of PHP by replacing the %, e.g. ins
 		elif [[ "$$TUGBOAT_SERVICE" == nginx* ]]; then\
 			$(MAKE) install-package-php$(*)-fpm;\
 			dpkg --purge apache2 libapache2-mod-php7.2 -y;\
+			apt-get autoremove -y;\
 		fi;\
 		echo "PHP $(*) installed.";\
 	fi
