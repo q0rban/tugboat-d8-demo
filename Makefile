@@ -51,6 +51,8 @@ drupal-prep:
 	cp ${DIST_DIR}/settings.local.php ${DRUPAL_SITE_DIR}/settings.local.php
 #	# Generate a hash_salt to secure the site.
 	echo "\$$settings['hash_salt'] = '$$(openssl rand -hex 32)';" >> ${DRUPAL_SITE_DIR}/settings.local.php
+#	# Add a .tugboat.qa trusted host pattern to the settings file.
+	echo "\$$settings['trusted_host_patterns'][] = '^.+\.tugboat\.qa$$';" >> ${DRUPAL_SITE_DIR}/settings.local.php
 #	# Copy the default.services.yml to services.yml. If you need some tugboat
 #	# specific changes, you could have a default in your $DIST_DIR that you copy
 #	# in instead.
