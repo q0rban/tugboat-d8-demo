@@ -1,6 +1,12 @@
 # Pantheon Makefile template for Tugboat
 
 # Please modify the following environment variables to match your project.
+# The Pantheon site name where the database and files will be copied from. If
+# you're unsure, you can run 'terminus site:list --fields=id,name'.
+PANTHEON_SOURCE_SITE :=
+# The Pantheon environment to pull the database and files from. This is
+# typically dev, test, or live.
+PANTHEON_SOURCE_ENVIRONMENT := live
 # Specify the desired version of PHP in major.minor format, e.g. 7.1. For
 # Pantheon sites, go to the dashboard of your site, click Settings, then click
 # PHP Version.
@@ -39,8 +45,9 @@ DRUPAL_FILES_PRIVATE = ${DRUPAL_SITE_DIR}/files/private
 packages: check-env install-php-$(PHP_VERSION) install-composer install-terminus install-drush
 #	# Point the www dir that is served to the drupal root.
 	ln -sf ${DRUPAL_ROOT} ${WWW_DIR}
-#	Authenticate to terminus
-	terminus auth:login --machine-token=${PANTHEON_MACHINE_TOKEN}
+#	# Authenticate to terminus. We prefix this with an @ symbol so that the
+#	# token isn't printed to the logs.
+	@terminus auth:login --machine-token=${PANTHEON_MACHINE_TOKEN}
 #	# Run composer install on this repo.
 	composer install --no-ansi
 
@@ -87,18 +94,21 @@ importdb: check-env drupal-prep create-backup
 # Import the files from Pantheon. You could also use Stage File Proxy module
 # instead if you'd like to save disk space at the cost of page load performance.
 importfiles: check-env drupal-prep create-backup
+#	# Download the files from Pantheon using terminus.
 	terminus backup:get \
 		${PANTHEON_SOURCE_SITE}.${PANTHEON_SOURCE_ENVIRONMENT} \
 		--to=/tmp/files.tar.gz \
 		--element=files
+#	# Untar the files to /tmp.
 	tar -C /tmp -zxf /tmp/files.tar.gz
+#	# Rsync them to the public files directory.
 	rsync -av \
 		--exclude=.htaccess \
 		--delete \
 		--no-owner \
 		--no-group \
 		--no-perms \
-		/tmp/files_${PANTHEON_SOURCE_ENVIRONMENT}/ ${DRUPAL_SITE_DIR}/files/
+		/tmp/files_${PANTHEON_SOURCE_ENVIRONMENT}/ ${DRUPAL_FILES_PUBLIC}
 
 build:
 # 	# Rather than specify each of these steps here, it's recommended to create a
