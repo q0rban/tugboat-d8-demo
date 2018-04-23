@@ -93,6 +93,7 @@ importfiles: check-env drupal-prep create-backup
 		--element=files
 	tar -C /tmp -zxf /tmp/files.tar.gz
 	rsync -av \
+		--exclude=.htaccess \
 		--delete \
 		--no-owner \
 		--no-group \
