@@ -110,7 +110,7 @@ build:
 # 	# Rather than specify each of these steps here, it's recommended to create a
 #	# script or command that encapsulates all your build steps that all
 #	# environments can use, including local, Dev, Test, Prod, and Tugboat.
-	composer install --no-ansi
+	composer install --no-ansi --optimize-autoloader
 	${DRUSH} cr
 	${DRUSH} updb
 
